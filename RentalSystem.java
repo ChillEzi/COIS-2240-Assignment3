@@ -1,17 +1,21 @@
+
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 
 public class RentalSystem {
     private static RentalSystem instance;
-
     private List<Vehicle> vehicles = new ArrayList<>();
     private List<Customer> customers = new ArrayList<>();
     private RentalHistory rentalHistory = new RentalHistory();
 
-    private RentalSystem() {}
+    private RentalSystem() {
+        loadData();
+    }
 
     public static RentalSystem getInstance() {
         if (instance == null) {
@@ -22,12 +26,12 @@ public class RentalSystem {
 
     public void addVehicle(Vehicle vehicle) {
         vehicles.add(vehicle);
-        saveVehicle(vehicle); 
+        saveVehicle(vehicle);
     }
 
     public void addCustomer(Customer customer) {
         customers.add(customer);
-        saveCustomer(customer); 
+        saveCustomer(customer);
     }
 
     public void rentVehicle(Vehicle vehicle, Customer customer, LocalDate date, double amount) {
@@ -47,7 +51,7 @@ public class RentalSystem {
             vehicle.setStatus(Vehicle.VehicleStatus.AVAILABLE);
             RentalRecord record = new RentalRecord(vehicle, customer, date, extraFees, "RETURN");
             rentalHistory.addRecord(record);
-            saveRecord(record); 
+            saveRecord(record);
             System.out.println("Vehicle returned by " + customer.getCustomerName());
         } else {
             System.out.println("Vehicle is not rented.");
@@ -57,11 +61,11 @@ public class RentalSystem {
     private void saveVehicle(Vehicle vehicle) {
         try (FileWriter fw = new FileWriter("vehicles.txt", true)) {
             fw.write(vehicle.getLicensePlate() + "," +
-                     vehicle.getMake() + "," +
-                     vehicle.getModel() + "," +
-                     vehicle.getYear() + "," +
-                     vehicle.getStatus() + "," +
-                     (vehicle instanceof Car ? "Car" : "Motorcycle") + "\n");
+                    vehicle.getMake() + "," +
+                    vehicle.getModel() + "," +
+                    vehicle.getYear() + "," +
+                    vehicle.getStatus() + "," +
+                    (vehicle instanceof Car ? "Car" : "Motorcycle") + "\n");
         } catch (IOException e) {
             System.out.println("Error saving vehicle: " + e.getMessage());
         }
@@ -70,7 +74,7 @@ public class RentalSystem {
     private void saveCustomer(Customer customer) {
         try (FileWriter fw = new FileWriter("customers.txt", true)) {
             fw.write(customer.getCustomerId() + "," +
-                     customer.getCustomerName() + ",");  
+                    customer.getCustomerName() + "\n");
         } catch (IOException e) {
             System.out.println("Error saving customer: " + e.getMessage());
         }
@@ -79,23 +83,71 @@ public class RentalSystem {
     private void saveRecord(RentalRecord record) {
         try (FileWriter fw = new FileWriter("rental_records.txt", true)) {
             fw.write(
-                     record.getCustomer().getCustomerId() + "," +
-                     record.getVehicle().getLicensePlate() + ",");
-                     
+                    record.getCustomer().getCustomerId() + "," +
+                    record.getVehicle().getLicensePlate() + ",");
+
         } catch (IOException e) {
             System.out.println("Error saving rental record: " + e.getMessage());
         }
     }
 
-    // Other unchanged methods...
+    private void loadData() {
+            try (BufferedReader br = new BufferedReader(new FileReader("vehicles.txt"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(",");
+                String LicensePlate = parts[0];
+                String make = parts[1];
+                String model = parts[2];
+                int year = Integer.parseInt(parts[3]);
+                Vehicle.VehicleStatus status = Vehicle.VehicleStatus.valueOf(parts[4]);
+            }
+        } catch (IOException e) {
+            System.out.println("Could not load vehicles: " + e.getMessage());
+        }
+
+     
+        try (BufferedReader br = new BufferedReader(new FileReader("customers.txt"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(",");
+                int id = Integer.parseInt(parts[0]);
+                String name = parts[1];
+                customers.add(new Customer(id, name));
+            }
+        } catch (IOException e) {
+            System.out.println("Could not load customers: " + e.getMessage());
+        }
+
+        try (BufferedReader br = new BufferedReader(new FileReader("rental_records.txt"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(",");
+                int customerId = Integer.parseInt(parts[0]);
+                String plate = parts[1];
+                LocalDate date = LocalDate.parse(parts[2]);
+                double amount = Double.parseDouble(parts[3]);
+                String type = parts[4];
+
+                Customer customer = findCustomerById(customerId);
+                Vehicle vehicle = findVehicleByPlate(plate);
+
+                if (customer != null && vehicle != null) {
+                    RentalRecord record = new RentalRecord(vehicle, customer, date, amount, type);
+                    rentalHistory.addRecord(record);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Could not load rental records: " + e.getMessage());
+        }
+    }
 
     public void displayAvailableVehicles() {
         System.out.println("|     Type         |\tPlate\t|\tMake\t|\tModel\t|\tYear\t|");
         System.out.println("---------------------------------------------------------------------------------");
-
         for (Vehicle v : vehicles) {
             if (v.getStatus() == Vehicle.VehicleStatus.AVAILABLE) {
-                System.out.println("|     " + (v instanceof Car ? "Car          " : "Motorcycle   ") + "|\t" + v.getLicensePlate() + "\t|\t" + v.getMake() + "\t|\t" + v.getModel() + "\t|\t" + v.getYear() + "\t|\t");
+                System.out.println("|     " + (v instanceof Car ? "Car          " : "Motorcycle   ") + "|\t" + v.getLicensePlate() + "\t|\t" + v.getMake() + "\t|\t" + v.getModel() + "\t|\t" + v.getYear() + "\t|");
             }
         }
         System.out.println();
