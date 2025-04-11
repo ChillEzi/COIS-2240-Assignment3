@@ -19,8 +19,10 @@ public class RentalSystem {
     }
 
     public void addVehicle(Vehicle vehicle) {
+    	//saveVehicle.save(vehicle); /// testing 
         vehicles.add(vehicle);
     }
+    
 
     public void addCustomer(Customer customer) {
         customers.add(customer);
