@@ -27,6 +27,39 @@ public class VehicleRentalTest {
         assertFalse(vehicle6.validateLicensePlate(), "AAA1000 should be invalid.");
         assertFalse(vehicle7.validateLicensePlate(), "ZZZ99 should be invalid.");
     }
+    
+    @Test
+    public void testRentAndReturnVehicle() {
+        
+   Vehicle vehicle = new Vehicle("V001", "Honda Civic", VehicleStatus.AVAILABLE);
+   Customer customer = new Customer("Alice Smith", "alice@example.com");
+
+   // vehicle is available
+   assertEquals(VehicleStatus.AVAILABLE, vehicle.getStatus());
+   
+   // rent vehicle
+   boolean rentSuccess = rentalSystem.rentVehicle(vehicle, customer);
+  
+   // renting successful
+   assertTrue(rentSuccess);
+   assertEquals(VehicleStatus.RENTED, vehicle.getStatus());
+   
+   // renting same vehicle
+   boolean rentAgainSuccess = rentalSystem.rentVehicle(vehicle, customer);
+   assertFalse(rentAgainSuccess);
+   
+   // returning vehicle
+   boolean returnSuccess = rentalSystem.returnVehicle(vehicle, customer);
+  
+   // returning was successful
+   assertTrue(returnSuccess);
+   assertEquals(VehicleStatus.AVAILABLE, vehicle.getStatus());
+   
+   // returning same vehicle
+   boolean returnAgainSuccess = rentalSystem.returnVehicle(vehicle, customer);
+   assertFalse(returnAgainSuccess);
+  }
+
 }
 
 
