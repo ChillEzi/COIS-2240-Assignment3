@@ -30,9 +30,11 @@ public class VehicleRentalTest {
     
     @Test
     public void testRentAndReturnVehicle() {
+      
+   RentalSystem rentalSystem = RentalSystem.getInstance();
         
-   Vehicle vehicle = new Vehicle("V001", "Honda Civic", VehicleStatus.AVAILABLE);
-   Customer customer = new Customer("Alice Smith", "alice@example.com");
+   Vehicle vehicle = new Vehicle("Honda Civic", VehicleStatus.AVAILABLE);
+   Customer customer = new Customer("Alice Smith");
 
    // vehicle is available
    assertEquals(VehicleStatus.AVAILABLE, vehicle.getStatus());
@@ -59,7 +61,20 @@ public class VehicleRentalTest {
    boolean returnAgainSuccess = rentalSystem.returnVehicle(vehicle, customer);
    assertFalse(returnAgainSuccess);
   }
+    
+    @Test
+    public void testSingletonRentalSystem() throws Exception {
+        Constructor<RentalSystem> constructor = RentalSystem.class.getDeclaredConstructor();
+        int modifiers = constructor.getModifiers();
+
+        assertEquals(Modifier.PRIVATE, modifiers, "Constructor should be private.");
+
+        RentalSystem instance = RentalSystem.getInstance();
+        assertNotNull(instance, "RentalSystem.getInstance() should not return null.");
+    }
 
 }
+
+
 
 
